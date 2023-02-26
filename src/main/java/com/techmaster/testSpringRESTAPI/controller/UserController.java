@@ -10,6 +10,8 @@ import com.techmaster.testSpringRESTAPI.service.UserService;
 import com.techmaster.testSpringRESTAPI.service.UserServiceImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,28 +23,56 @@ public class UserController {
     UserServiceImpl userService;
     @Autowired
     CourseServiceImpl courseService;
+
     @GetMapping
-    public List<UserDTO> getAllUsers(
-       @RequestParam(required = false) int pageNumber,
-       @RequestParam(required = false) int pageSize
-    ){
-        return userService.findAll(pageNumber,pageSize);
+    public ResponseEntity<List<UserDTO>> getAllUsers(
+            @RequestParam(required = false) int pageNumber,
+            @RequestParam(required = false) int pageSize
+    ) {
+        List<UserDTO> userDTOS = userService.findAll(pageNumber, pageSize);
+        return (userDTOS.isEmpty()) ?
+                ResponseEntity.noContent().build() :
+                ResponseEntity.ok(userDTOS);
     }
+
     @GetMapping("/{id}")
-    public CourseDTO getCourseById(@PathVariable int id){
-        return courseService.findCourseById(id);
+    public ResponseEntity<?> getCourseById(@PathVariable int id) {
+        CourseDTO courseDTO = courseService.findCourseById(id);
+        return (courseDTO == null) ?
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Course is't exist") :
+                ResponseEntity.ok(courseDTO);
     }
+
     @PostMapping
-    public CourseDTO postCourse(@RequestBody CourseDTO courseDTO){
-        return courseService.save(courseDTO);
+    public ResponseEntity<?> postCourse(@RequestBody CourseDTO courseDTO) {
+        // kiểm tra course đã tồn tại hay chưa
+        boolean isCourseExist = courseService.findCourseById(courseDTO.getId()) != null;
+        // nếu tồn tại trả về bad request chưa thì lưu
+        if (!isCourseExist) {
+            courseService.save(courseDTO);
+        }
+        return isCourseExist ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Course is exist !!!") : ResponseEntity.ok(courseDTO);
     }
+
     @PutMapping
-    public CourseDTO putCourseById(@RequestBody CourseDTO courseDTO){
-        return courseService.put(courseDTO);
+    public ResponseEntity<?> putCourseById(@RequestBody CourseDTO courseDTO) {
+        boolean isCourseExist = courseService.findCourseById(courseDTO.getId()) != null;
+        // nếu tồn tại trả về bad request chưa thì lưu
+        if (isCourseExist) {
+            courseService.put(courseDTO);
+        }
+        return isCourseExist ? ResponseEntity.ok(courseDTO) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Course is't exist !!!");
     }
+
     @DeleteMapping("/{id}")
-    public void deleteCourse(@PathVariable int id){
-        courseService.delete(id);
+    public ResponseEntity<?> deleteCourse(@PathVariable int id) {
+        boolean isCourseExist = courseService.findCourseById(id) != null;
+        CourseDTO courseDTO = courseService.findCourseById(id);
+        // nếu tồn tại trả về bad request chưa thì lưu
+        if (isCourseExist) {
+            courseService.delete(id);
+        }
+        return isCourseExist ? ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Course is't exist !!!");
     }
 
 }
