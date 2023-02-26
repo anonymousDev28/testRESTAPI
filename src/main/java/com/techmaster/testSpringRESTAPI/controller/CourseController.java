@@ -6,6 +6,8 @@ import com.techmaster.testSpringRESTAPI.service.CourseServiceImpl;
 import com.techmaster.testSpringRESTAPI.service.UserService;
 import com.techmaster.testSpringRESTAPI.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,15 +18,20 @@ public class CourseController {
     @Autowired
     CourseServiceImpl courseService;
     @GetMapping
-    public List<CourseDTO> getAllCourse(
+    public ResponseEntity<List<CourseDTO>> getAllCourse(
              @RequestParam(required = false) String type,
              @RequestParam(required = false) String[] topics,
              @RequestParam(required = false) String name
     ){
-        return  courseService.findAllCourses(type,name,topics);
+        List<CourseDTO> courseDTOS = courseService.findAllCourses(type,name,topics);
+        return (courseDTOS.isEmpty())?ResponseEntity.noContent().build():ResponseEntity.ok(courseDTOS);
     }
+
     @GetMapping("/{id}")
-    public CourseDTO getCourseById(@PathVariable int id){
-        return courseService.findCourseById(id);
+    public ResponseEntity<?> getCourseById(@PathVariable int id){
+        CourseDTO courseDTO = courseService.findCourseById(id);
+        return (courseDTO != null)?
+                ResponseEntity.ok(courseDTO):
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Course is't exist");
     }
 }
