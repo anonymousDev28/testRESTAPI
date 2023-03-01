@@ -11,12 +11,9 @@ import java.util.stream.Collectors;
 
 @Repository
 public class UserRepository {
-    public List<UserDTO> findAll(int pageNumber,int pageSize){
-        List<User> users = UserDB.users.stream().filter(user -> user.getId() > pageSize * (pageNumber - 1) && user.getId() <= (pageSize * pageNumber)).toList();
-        ModelMapper modelMapper = new ModelMapper();
-        return users.stream().map(user -> modelMapper.map(user,UserDTO.class)).collect(Collectors.toList());
+    public List<User> findAll(){
+        return UserDB.users;
     }
-
     public User findUserById(int id) {
         return UserDB.users.stream().filter(user -> user.getId() == id).findFirst().orElse(null);
     }

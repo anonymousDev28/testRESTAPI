@@ -1,6 +1,7 @@
 package com.techmaster.testSpringRESTAPI.controller;
 
 import com.techmaster.testSpringRESTAPI.dto.CourseDTO;
+import com.techmaster.testSpringRESTAPI.dto.PageDTO;
 import com.techmaster.testSpringRESTAPI.dto.UserDTO;
 import com.techmaster.testSpringRESTAPI.model.Course;
 import com.techmaster.testSpringRESTAPI.model.User;
@@ -25,14 +26,14 @@ public class UserController {
     CourseServiceImpl courseService;
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers(
+    public ResponseEntity<PageDTO> getAllUsers(
             @RequestParam(required = false) int pageNumber,
             @RequestParam(required = false) int pageSize
     ) {
-        List<UserDTO> userDTOS = userService.findAll(pageNumber, pageSize);
-        return (userDTOS.isEmpty()) ?
+        PageDTO pageDTO = userService.findAllwithPagination(pageNumber,pageSize);
+        return (pageDTO == null) ?
                 ResponseEntity.noContent().build() :
-                ResponseEntity.ok(userDTOS);
+                ResponseEntity.ok(pageDTO);
     }
 
     @GetMapping("/{id}")
